@@ -14,7 +14,6 @@
                  [nrepl/nrepl "0.6.0"]
                  [buddy/buddy-auth "2.2.0"]
                  [org.clojure/core.async "0.4.474"]
-                 [reagi "0.10.1"]
                  [com.walmartlabs/lacinia "0.37.0-alpha-1"]]
   :main mypage-engine.main
   :repl-options {:init-ns mypage-engine.main}

@@ -78,6 +78,7 @@
 
 ;; https://gist.github.com/viperscape/8529476 handle dead clients
 ;; or handle through nginx?
+;; TODO change with-channel to as-channel
 (defn ws-handler
   [request & args]
   (let [trigger-event (:trigger-event (first args))
