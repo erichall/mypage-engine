@@ -17,7 +17,12 @@
                  [reagi "0.10.1"]
                  [com.walmartlabs/lacinia "0.37.0-alpha-1"]]
   :main mypage-engine.main
-  :profiles {:uberjar {:aot [mypage-engine.main]}}
   :repl-options {:init-ns mypage-engine.main}
 
-  :extra-paths ["resources"])
+  :profiles {:dev     {:resource-paths ["resource-dev"]}
+             :uberjar {
+                       :resource-paths ["resource-prod"]
+                       :aot            [mypage-engine.main]}
+             }
+
+  )

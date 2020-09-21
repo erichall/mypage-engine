@@ -2,7 +2,8 @@
   (:require [ysera.test :refer [is= is error?]]
             [clojure.java.io :as io]
             [clojure.data.json :refer [read-json write-str]]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.java.io :refer [resource]])
   (:import (java.time ZoneId Instant ZonedDateTime)
            (java.time.format DateTimeFormatter)))
 
@@ -263,6 +264,11 @@
   [& _]
   true)
 
+(def config (delay (load-file (.getFile (resource "config.clj")))))
+(defn get-config
+  []
+  @(force config))
+
 (comment
   (create-directory! (:posts-root config))
   (create-directory! (:posts-root-mocks config))
@@ -290,5 +296,4 @@
                                          :tags  ["Rasp"]})))
 
   (mapv str (filter #(.isFile %) (file-seq (clojure.java.io/file "./resources/portfolio/")))))
-
 

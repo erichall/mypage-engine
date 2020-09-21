@@ -4,13 +4,18 @@
     [buddy.core.keys :as keys]
     [clojure.java.io :as io]
     [clj-time.core :as time]
+    [mypage-engine.core :refer [get-config]]
     ))
 
-(def cred-path "resources/credentials")
+(def config (get-config))
+(def cred-path (:credentials config))
 (def has-credentials? (.exists (io/file cred-path)))
 
 (when (not has-credentials?)
-  (println "\n\n  NO PATH TO KEYS FOUND  \n\n"))
+  (print "\n\n  NO PATH TO KEYS FOUND - ")
+  (println cred-path)
+  (println "\n\n")
+  )
 
 (def secrets
   {:auth-data   (if has-credentials?
