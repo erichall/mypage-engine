@@ -20,10 +20,14 @@
 
   :repl-options {:init-ns mypage-engine.main}
 
-  :profiles {:dev     {:resource-paths ["resource-dev"]}
+  :profiles {:dev     {:resource-paths ["config/dev"]
+                       :injections     [(println "including dev profile")]
+                       }
              :uberjar {
-                       :resource-paths ["resource-prod"]
-                       :aot            :all}
+                       :resource-paths ["config/release"]
+                       :aot            :all
+                       :injections     [(println "including prod profile")]
+                       }
              }
 
   )

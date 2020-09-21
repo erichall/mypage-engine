@@ -3,7 +3,8 @@
             [clojure.java.io :as io]
             [clojure.java.io :refer [resource]]
             [clojure.data.json :refer [read-json write-str]]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.edn :as edn])
   (:import (java.time ZoneId Instant ZonedDateTime)
            (java.time.format DateTimeFormatter)))
 
@@ -264,10 +265,10 @@
   [& _]
   true)
 
-(def c (delay (load-file (.getFile (resource "resource/config.clj")))))
+(defonce c (->> "config.edn" io/resource slurp edn/read-string))
 (defn get-config
   []
-  @(force c))
+  c)
 
 (comment
   (create-directory! (:posts-root config))
