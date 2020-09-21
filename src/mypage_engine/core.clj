@@ -264,7 +264,7 @@
   [& _]
   true)
 
-(def c (delay (load-file (.getFile (resource "config.clj")))))
+(def c (delay (load-file (.getFile (resource "resource/config.clj")))))
 (defn get-config
   []
   @(force c))
