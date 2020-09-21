@@ -114,6 +114,7 @@
 
 (defn uri-handler-get
   [request]
+  (println "Request:: " request)
   (condp = (:uri request)
     "/api/v1/" {:handler hello-world
                 :auth-fn allow-any}
