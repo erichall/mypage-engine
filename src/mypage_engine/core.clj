@@ -2,19 +2,11 @@
   (:require [ysera.test :refer [is= is error?]]
             [clojure.java.io :as io]
             [clojure.data.json :refer [read-json write-str]]
-            [clojure.string :as str]
-            [clojure.java.io :refer [resource]])
+            [clojure.string :as str])
   (:import (java.time ZoneId Instant ZonedDateTime)
            (java.time.format DateTimeFormatter)))
 
 (defn uuid [] (str (java.util.UUID/randomUUID)))
-
-(def config
-  {
-   :posts-root       "./resources/posts/"
-   :posts-root-mocks "./resources/mock-posts/"
-   :portfolio-root   "./resources/portfolio/"
-   })
 
 (defn portfolio-item
   [{:keys [title text image link created tags]}]
@@ -264,7 +256,7 @@
   [& _]
   true)
 
-(def config (delay (load-file (.getFile (resource "config.clj")))))
+(def config (delay (load-file (.getFile (io/resource "config.clj")))))
 (defn get-config
   []
   @(force config))
