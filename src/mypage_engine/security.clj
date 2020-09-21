@@ -9,6 +9,9 @@
 
 (def config (get-config))
 (def cred-path (:credentials config))
+
+(println "CRED :: " cred-path)
+
 (def has-credentials? (.exists (io/file cred-path)))
 
 (when (not has-credentials?)

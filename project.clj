@@ -20,9 +20,9 @@
 
   :repl-options {:init-ns mypage-engine.main}
 
-  :profiles {:dev     {:resource-paths ["resource-dev/"]}
+  :profiles {:dev     {:resource-paths ["resource-dev"]}
              :uberjar {
-                       :resource-paths ["resource-prod/"]
+                       :resource-paths ["resource-prod"]
                        :aot            :all}
              }
 

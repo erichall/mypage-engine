@@ -3,3 +3,6 @@ resources/
 target/
 .idea/
 .iml/
+*.iml
+.nrepl-port
+
