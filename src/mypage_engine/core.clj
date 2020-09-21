@@ -1,6 +1,7 @@
 (ns mypage-engine.core
   (:require [ysera.test :refer [is= is error?]]
             [clojure.java.io :as io]
+            [clojure.java.io :refer [resource]]
             [clojure.data.json :refer [read-json write-str]]
             [clojure.string :as str])
   (:import (java.time ZoneId Instant ZonedDateTime)
@@ -263,7 +264,7 @@
   [& _]
   true)
 
-(def c (delay (load-file (.getFile (io/resource "config.clj")))))
+(def c (delay (load-file (.getFile (resource "config.clj")))))
 (defn get-config
   []
   @(force c))

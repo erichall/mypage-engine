@@ -10,7 +10,6 @@
                                         allow-any
                                         body->map
                                         body->str
-                                        config
                                         create-post
                                         data->file!
                                         find-post-by-id
@@ -51,9 +50,6 @@
         (header "Content-Type" "text/json; charset=UTF-8")
         (header "Access-Control-Allow-Headers" "Accept,Content-Type, text/json"))))
 
-(defn get-posts-handler [_ & args] (assoc-in ok [:body :posts] (get-all-posts (:posts-root config))))
-(defn get-portfolio-handler [_ & args] (assoc-in ok [:body :portfolio] (get-portfolio (:portfolio-root config))))
-
 (defn get-post-by-title
   [request & args]
   (let [post-title (get-post-title-from-query-string request)]
@@ -67,24 +63,6 @@
     (if (nil? post)
       (assoc-in no-content [:body :message] "Unable to find post")
       (assoc-in ok [:body :post] post))))
-
-(defn create-post-from-request
-  [request & args]
-  (let [body (:body request)]
-    (if-not (true? request)                                 ;; REFACTORED TODO
-      unauthorized
-      (let [new-post (create-post {:text      (:markdown body)
-                                   :title     (:title body)
-                                   :caption   (:caption body)
-                                   :category  (:category body)
-                                   :thumbnail (:thumbnail body)
-                                   :author    (:author body)})
-            post-file (timestamp-with-str-and-uuid (:title body))]
-        (do
-          (data->file! (:posts-root config) post-file new-post)
-          (->
-            (assoc-in ok [:body :post] new-post)
-            (assoc-in [:body :post-file] post-file)))))))
 
 (defn hello-world
   [request & args]

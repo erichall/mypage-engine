@@ -1,5 +1,6 @@
 (defproject mypage-engine "1.0.0"
   :description "Backend service for https://erkanp.dev"
+
   :dependencies [
                  [org.markdownj/markdownj "0.3.0-1.0.2b4"]
                  [org.clojure/clojure "1.10.0"]
@@ -16,12 +17,13 @@
                  [org.clojure/core.async "0.4.474"]
                  [com.walmartlabs/lacinia "0.37.0-alpha-1"]]
   :main mypage-engine.main
+
   :repl-options {:init-ns mypage-engine.main}
 
-  :profiles {:dev     {:resource-paths ["resource-dev"]}
+  :profiles {:dev     {:resource-paths ["resource-dev/"]}
              :uberjar {
-                       :resource-paths ["resource-prod"]
-                       :aot            [mypage-engine.main]}
+                       :resource-paths ["resource-prod/"]
+                       :aot            :all}
              }
 
   )
