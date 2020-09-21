@@ -8,6 +8,13 @@
 
 (defn uuid [] (str (java.util.UUID/randomUUID)))
 
+(def config
+  {
+   :posts-root       "./resources/posts/"
+   :posts-root-mocks "./resources/mock-posts/"
+   :portfolio-root   "./resources/portfolio/"
+   })
+
 (defn portfolio-item
   [{:keys [title text image link created tags]}]
   {:title   title
@@ -256,10 +263,10 @@
   [& _]
   true)
 
-(def config (delay (load-file (.getFile (io/resource "config.clj")))))
+(def c (delay (load-file (.getFile (io/resource "config.clj")))))
 (defn get-config
   []
-  @(force config))
+  @(force c))
 
 (comment
   (create-directory! (:posts-root config))
