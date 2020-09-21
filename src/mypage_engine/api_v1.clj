@@ -91,7 +91,7 @@
   (assoc request :body "<h1>Hello world!</h1>"))
 
 (defn four-o-four
-  []
+  [& _]
   (assoc not-found :body "<div align= \"center \"><h4>Ooops... 404</h4><h1>¯ \\_ (ツ) _ / ¯</h1></div>"))
 
 (def default-handler
