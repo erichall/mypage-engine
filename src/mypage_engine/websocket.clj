@@ -2,25 +2,25 @@
   (:require [clojure.data.json :refer [read-json write-str write-str]]
             [org.httpkit.server :refer [close send! with-channel on-close on-receive]]
             [clojure.set :refer [map-invert]]
+            [mypage-engine.core :refer [uuid]]
             [mypage-engine.security :refer [authenticate is-authenticated?]]
             ))
 
 (defonce sockets-atom (atom {}))
 
 (defn create-socket
-  [{:keys [channel id]}]
+  [{:keys [channel]}]
   {:channel channel
-   :id      id})
+   :id      (uuid)})
 
 (defn get-channel
   [{:keys [id]}]
   (get-in (deref sockets-atom) [id :channel]))
 
 (defn connect!
-  [channel id state]
-  (let [socket (create-socket {:channel channel :id id})]
-
-    (println "CONNECT ")
+  [channel state]
+  (let [socket (create-socket {:channel channel})
+        id (:id socket)]
 
     (swap! sockets-atom assoc id socket)
 
@@ -84,9 +84,7 @@
   (let [trigger-event (:trigger-event (first args))
         state-atom (:state-atom (first args))]
     (with-channel request channel
-                  (connect! channel
-                            (-> (get request :query-string) (clojure.string/split #"=") second)
-                            (deref state-atom))
+                  (connect! channel (deref state-atom))
                   (on-close channel (fn [status]
                                       (disconnect! channel status)))
                   (on-receive channel (fn [data]
@@ -101,10 +99,6 @@
             (recur))))
 
 (comment
-
-  (broadcast! {:data {:dude "wtf"}})
-
-  (deref sockets-atom)
 
   (-> (deref sockets-atom)
       vals

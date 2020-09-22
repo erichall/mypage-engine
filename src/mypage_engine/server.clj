@@ -1,7 +1,6 @@
 (ns mypage-engine.server
   (:require
     [org.httpkit.server :refer [run-server]]
-    [ring.adapter.jetty :refer [run-jetty]]
     [clj-totp.core :as totp]
     [mypage-engine.api_v1 :refer [app]]
     ))

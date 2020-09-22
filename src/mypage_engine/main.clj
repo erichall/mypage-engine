@@ -71,17 +71,13 @@
 
   (deref state-atom)
 
-
-
   (reset! state-atom initial-state)
-  (swap! state-atom assoc-in [:content :front-page :text] "CHANGE FROM THE BACKEND!!!!")
-  (swap! state-atom assoc-in [:content :header :title] "ERIC Hallllllls")
 
   (ws/broadcast! {:data {:state (deref state-atom)}})
 
   (swap! state-atom assoc-in [:content :front-page :text] "This is awesome")
 
   (totp/generate-key "Eric Hallstrom" "hallstrom.eric@gmail.com")
-  (totp/valid-code? "3VDZV3ZWTN2ILIHZ" 926280)
+  (totp/valid-code? "" 926280)
   )
 

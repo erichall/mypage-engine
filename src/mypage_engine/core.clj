@@ -266,9 +266,7 @@
   true)
 
 (defonce c (->> "config.edn" io/resource slurp edn/read-string))
-(defn get-config
-  []
-  c)
+(defn get-config [] c)
 
 (comment
   (create-directory! (:posts-root config))

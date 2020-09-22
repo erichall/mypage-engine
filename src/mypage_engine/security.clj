@@ -62,8 +62,7 @@
   (if (valid-token? token)
     {:event-name :is-authenticated
      :data       {:token token
-                  :page  page}
-     }
+                  :page  page}}
     {:event-name :not-authenticated
      :data       nil}))
 
