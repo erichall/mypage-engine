@@ -2,6 +2,7 @@
   (:require [clojure.data.json :refer [read-json write-str write-str]]
             [org.httpkit.server :refer [close send! with-channel on-close on-receive]]
             [clojure.set :refer [map-invert]]
+            [taoensso.timbre :as log]
             [mypage-engine.core :refer [uuid]]
             [mypage-engine.security :refer [authenticate is-authenticated?]]
             ))
@@ -30,13 +31,13 @@
 
 (defn disconnect!
   [channel status]
-  (println "disconnect! " status)
+  (log/info "disconnect! " status)
   (let [id-to-be-removed (->> (map-invert (deref sockets-atom))
                               (filterv (fn [[socket]] (= channel (:channel socket))))
                               flatten
                               first
                               :id)]
-    (println " removing id:: " id-to-be-removed)
+    (log/info " removing id:: " id-to-be-removed)
     (send! channel (str {:event-name :connection-closed}))
     (swap! sockets-atom dissoc id-to-be-removed)))
 

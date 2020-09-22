@@ -73,7 +73,9 @@
   [& args]
   (t/info "Engine is loading.....")
   (restart-repl!)                                           ;; TODO not start this in production :)
-  (start-server! state-atom))
+  (start-server! state-atom)
+  (ws/initialize-ping-clients {:delay (* 1000 30)})         ;; 30 sec
+  )
 
 (comment
   (start-server! state-atom)

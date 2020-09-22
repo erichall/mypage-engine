@@ -93,11 +93,10 @@
   (let [uri-handler (uri-handler request)
         authorized? ((:auth-fn uri-handler) request)
         handler (:handler uri-handler)]
+    ;; TODO refactor this
     (if authorized?
-      (do
-        (log/info "Authroized request - " request " - state - " (deref state-atom))
-        (handler request {:trigger-event handle-event!
-                          :state-atom    state-atom}))
+      (handler request {:trigger-event handle-event!
+                        :state-atom    state-atom})
       unauthorized)))
 
 (def app
