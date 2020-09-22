@@ -56,7 +56,7 @@
 
 (defn handler
   [state-atom channel args]
-  (let [{:keys [event-name id data]} (clojure.edn/read-string args)]
+  (let [{:keys [event-name data]} (clojure.edn/read-string args)]
 
     (condp = event-name
 

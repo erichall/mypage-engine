@@ -1,14 +1,24 @@
 (ns mypage-engine.main
   (:require [mypage-engine.server :refer [start-server! stop-server!]]
             [mypage-engine.websocket :as ws]
+            [mypage-engine.core :refer [get-config]]
+            [taoensso.timbre :as t]
+            [taoensso.timbre.appenders.core :as appenders]
+            [taoensso.timbre.appenders.3rd-party.rotor :as rotor]
             [nrepl.server :refer [start-server stop-server]])
   (:gen-class))
+
+(def log-file-name (-> (get-config) :log-file-name))
+(t/merge-config! {:appenders {:spit  (appenders/spit-appender {:fname log-file-name})
+                              :rotor (rotor/rotor-appender {:path    log-file-name
+                                                            :backlog 20})}})
 
 (def repl-port 5557)
 (def repl-ip "0.0.0.0")
 
 (defonce repl-server-atom (atom nil))
 (defonce state-atom (atom nil))
+
 
 (def initial-state
   {:content   {
@@ -47,7 +57,7 @@
   []
   (when (nil? (deref repl-server-atom))
     (do
-      (println (str "Starting repl at " repl-ip ":" repl-port))
+      (t/info (str "Starting repl at " repl-ip ":" repl-port))
       (reset! repl-server-atom (start-server
                                  :bind repl-ip
                                  :port repl-port
@@ -61,7 +71,7 @@
 
 (defn -main
   [& args]
-  (println "Engine is loading.....")
+  (t/info "Engine is loading.....")
   (restart-repl!)                                           ;; TODO not start this in production :)
   (start-server! state-atom))
 

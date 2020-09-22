@@ -1,6 +1,8 @@
 (ns mypage-engine.api_v1
   (:require [clojure.data.json :refer [read-json write-str write-str]]
 
+            [taoensso.timbre :as log]
+
             [org.httpkit.server :refer [send! with-channel on-close on-receive]]
 
             [mypage-engine.websocket :as ws]
@@ -12,8 +14,6 @@
                                         body->str
                                         create-post
                                         data->file!
-                                        find-post-by-id
-                                        find-post-by-title
                                         get-all-posts
                                         get-portfolio
                                         get-post-title-from-query-string
@@ -50,20 +50,6 @@
         (header "Content-Type" "text/json; charset=UTF-8")
         (header "Access-Control-Allow-Headers" "Accept,Content-Type, text/json"))))
 
-(defn get-post-by-title
-  [request & args]
-  (let [post-title (get-post-title-from-query-string request)]
-    (assoc-in ok [:body :post] (find-post-by-title post-title))))
-
-(defn get-post-by-id
-  [request & args]
-  (let [post (find-post-by-id (-> (:query-string request)
-                                  parse-query-string
-                                  (get :post-id)))]
-    (if (nil? post)
-      (assoc-in no-content [:body :message] "Unable to find post")
-      (assoc-in ok [:body :post] post))))
-
 (defn hello-world
   [request & args]
   (assoc request :body "<h1>Hello world!</h1>"))
@@ -76,23 +62,9 @@
   {:handler four-o-four
    :auth-fn allow-any})
 
-(defn graphql-test
-  [request & args]
-  {:status  200
-   :headers {"Content-Type" "application/json"}
-   :body    (let [body (clojure.edn/read-string (slurp (get request :body)))
-                  trigger-event (:trigger-event (first args))
-                  result (trigger-event {:name :execute-query
-                                         :data {:gq-query-string (:query body)
-                                                :args            {:id            (:id body)
-                                                                  :trigger-event trigger-event}}})]
-
-              (write-str result)                            ;; json for this, since this is an ordered/map, unable to str this..?!
-              )})
-
 (defn uri-handler-get
   [request]
-  (println "Request:: " request)
+
   (condp = (:uri request)
     "/api/v1/" {:handler hello-world
                 :auth-fn allow-any}
@@ -103,7 +75,7 @@
     default-handler
     ))
 
-(defn uri-handler-post [request])
+(defn uri-handler-post [request] nil)
 
 (defn uri-handler
   [{:keys [request-method] :as request}]
@@ -115,12 +87,17 @@
 
 (defn app-routes
   [{:keys [state-atom request]}]
+
+  (log/info request)
+
   (let [uri-handler (uri-handler request)
         authorized? ((:auth-fn uri-handler) request)
         handler (:handler uri-handler)]
     (if authorized?
-      (handler request {:trigger-event handle-event!
-                        :state-atom    state-atom})
+      (do
+        (log/info "Authroized request - " request " - state - " (deref state-atom))
+        (handler request {:trigger-event handle-event!
+                          :state-atom    state-atom}))
       unauthorized)))
 
 (def app

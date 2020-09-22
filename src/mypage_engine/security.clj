@@ -3,6 +3,7 @@
     [buddy.sign.jwt :as jwt]
     [buddy.core.keys :as keys]
     [clojure.java.io :as io]
+    [taoensso.timbre :as log]
     [clj-time.core :as time]
     [mypage-engine.core :refer [get-config]]
     ))
@@ -10,14 +11,10 @@
 (def config (get-config))
 (def cred-path (:credentials config))
 
-(println "CRED :: " cred-path)
-
 (def has-credentials? (.exists (io/file cred-path)))
 
 (when (not has-credentials?)
-  (print "\n\n  NO PATH TO KEYS FOUND - ")
-  (println cred-path)
-  (println "\n\n")
+  (log/error "\n\n  NO PATH TO KEYS FOUND - " cred-path)
   )
 
 (def secrets
@@ -45,6 +42,7 @@
 
 (defn authenticate
   [{:keys [username password]}]
+  (log/info "Authentication - " username password)
   (let [valid? (some-> (:auth-data secrets)
                        (get (keyword username))
                        (= password))]
