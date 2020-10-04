@@ -18,6 +18,13 @@
   [{:keys [id]}]
   (get-in (deref sockets-atom) [id :channel]))
 
+(defn broadcast!
+  [{:keys [data event-name]}]
+  (doall (map (fn [[id {:keys [channel]}]]
+                (send! channel (str {:event-name (or event-name :re-hydrate)
+                                     :data       data})))
+              (deref sockets-atom))))
+
 (defn connect!
   [channel state]
   (let [socket (create-socket {:channel channel})
@@ -27,7 +34,11 @@
 
     (send! channel (str {:event-name :connected
                          :data       {:id    id
-                                      :state state}}))))
+                                      :state state}}))
+
+    (broadcast! {:data       {:visitors (-> (deref sockets-atom) keys count)}
+                 :event-name :page-count})
+    ))
 
 (defn disconnect!
   [channel status]
@@ -39,14 +50,11 @@
                               :id)]
     (log/info " removing id:: " id-to-be-removed)
     (send! channel (str {:event-name :connection-closed}))
-    (swap! sockets-atom dissoc id-to-be-removed)))
+    (swap! sockets-atom dissoc id-to-be-removed)
+    (broadcast! {:data       {:visitors (-> (deref sockets-atom) keys count)}
+                 :event-name :page-count})
+    ))
 
-(defn broadcast!
-  [{:keys [data event-name]}]
-  (doall (map (fn [[id {:keys [channel]}]]
-                (send! channel (str {:event-name (or event-name :re-hydrate)
-                                     :data       data})))
-              (deref sockets-atom))))
 
 
 (defn get-id-from-request
