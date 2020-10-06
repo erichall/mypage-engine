@@ -81,6 +81,8 @@
   (start-server! state-atom)
   (stop-server!)
 
+  (ws/initialize-ping-clients {:delay (* 1000 10)})
+
   (deref state-atom)
 
   (reset! state-atom initial-state)
