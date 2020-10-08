@@ -28,7 +28,6 @@
 
     ;; else
     (assoc {:status 404 :headers {}} :body "<div align= \"center \"><h4>Ooops... 404</h4><h1>¯ \\_ (ツ) _ / ¯</h1></div>")
-
     ))
 
 (def app

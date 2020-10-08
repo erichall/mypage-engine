@@ -28,7 +28,7 @@ pipeline {
     }
     post {
             always {
-                sh "nohup java -jar /run/mypage-engine/app/mypage-engine-1.0.0-standalone.jar -m mypage-engine.main --config /run/mypage-engine/config.edn &"
+                sh "JENKINS_NODE_COOKIE=dontKillMe nohup java -jar /run/mypage-engine/app/mypage-engine-1.0.0-standalone.jar -m mypage-engine.main --config /run/mypage-engine/config.edn &"
             }
          }
 }
