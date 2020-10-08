@@ -5,31 +5,14 @@
     [clojure.java.io :as io]
     [taoensso.timbre :as log]
     [clj-time.core :as time]
-    [mypage-engine.core :refer [read-edn]]
+    [mypage-engine.core :refer [read-edn]]))
 
-    ))
-
-(def config (get-config))
-(def cred-path (:credentials config))
-
-(def has-credentials? (.exists (io/file cred-path)))
-
-(when (not has-credentials?)
-  (log/error "\n\n  NO PATH TO KEYS FOUND - " cred-path))
-
-;; TODO use config for these
-(def secrets
-  {:auth-data   (if has-credentials?
-                  (clojure.edn/read-string (slurp (str cred-path "/auth-data")))
-                  "")
-   :private-key (if has-credentials? (keys/private-key (str cred-path "/ecprivkey.pem")) "")
-   :public-key  (if has-credentials? (keys/public-key (str cred-path "/ecpubkey.pem")) "")
-   :jwt-options (if has-credentials? (clojure.edn/read-string (slurp (str cred-path "/jwt-options"))) "")})
+(defonce secrets-atom (atom nil))
 
 (defn decrypt-token
   "throws if invalid token.."
   [token]
-  (jwt/unsign token (:public-key secrets) (:jwt-options secrets)))
+  (jwt/unsign token (:public-key @secrets-atom) (:jwt-options @secrets-atom)))
 
 (defn valid-token?
   "Validate a jwt token"
@@ -38,19 +21,19 @@
     (when (decrypt-token token)
       true)
     (catch Exception e
-      (println (str "Invalid token - " e))
+      (log/error (str "Invalid token - " e))
       false)))
 
 (defn authenticate
   [{:keys [username password]}]
   (log/info "Authentication - " username password)
-  (let [valid? (some-> (:auth-data secrets)
+  (let [valid? (some-> (:auth-data @secrets-atom)
                        (get (keyword username))
                        (= password))]
     (if valid?
       (let [claims {:user (keyword username)
-                    :exp  (time/plus (time/now) (time/seconds 3600))}
-            token (jwt/sign claims (:private-key secrets) (:jwt-options secrets))]
+                    :exp  (time/plus (time/now) (time/seconds (:token-time-sec @secrets-atom)))}
+            token (jwt/sign claims (:private-key @secrets-atom) (:jwt-options @secrets-atom))]
         {:event-name :authenticate-success
          :data       {:token token}})
       {:event-name :authenticate-fail
@@ -65,3 +48,10 @@
     {:event-name :not-authenticated
      :data       nil}))
 
+(defn initialize-secrets
+  [{:keys [auth-data private-key public-key jwt-options token-time-sec]}]
+  (reset! secrets-atom {:auth-data      (read-edn auth-data)
+                        :private-key    (keys/private-key private-key)
+                        :public-key     (keys/public-key public-key)
+                        :jwt-options    (read-edn jwt-options)
+                        :token-time-sec token-time-sec}))

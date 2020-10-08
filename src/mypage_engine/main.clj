@@ -3,6 +3,7 @@
             [mypage-engine.websocket :as ws]
             [mypage-engine.core :refer [exists?
                                         print-exit]]
+            [mypage-engine.security :refer [initialize-secrets]]
             [taoensso.timbre :as t]
             [taoensso.timbre.appenders.core :as appenders]
             [taoensso.timbre.appenders.3rd-party.rotor :as rotor]
@@ -82,14 +83,21 @@
       (let [conf (-> (slurp config-file) clojure.edn/read-string)]
         (reset! config-atom conf))))
 
-  (configure-logs!)
-  (restart-repl!)                                           ;; TODO not start this in production :)
+  (initialize-secrets (deref config-atom))
+
+  (when-not (= (config :env) :prod)
+    (configure-logs!)
+    (restart-repl!)
+    (ws/initialize-ping-clients {:delay (* 1000 (config :ping-clients-delay-sec))}))
+
   (start-server! {:state-atom state-atom :config-atom config-atom})
-  (ws/initialize-ping-clients {:delay (* 1000 (config :ping-clients-delay-sec))})) ;; 30 sec
+  )
 
 (comment
 
-  (reset! config-atom (-> (slurp "config.edn" clojure.edn/read-string)))
+  (reset! config-atom (-> "config.edn" slurp clojure.edn/read-string))
+
+  (initialize-secrets (deref config-atom))
 
   (start-server! {:state-atom state-atom :config-atom config-atom})
   (stop-server!)
