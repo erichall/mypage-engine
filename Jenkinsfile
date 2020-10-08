@@ -23,8 +23,14 @@ pipeline {
                 sh 'ps aux | grep mypage-engine | awk \'{print $1}\' | xargs killl -9 || true'
                 sh 'rm -f /run/mypage-engine/mypage-engine-1.0.0-standalone.jar'
                 sh 'mv target/mypage-engine-1.0.0-standalone.jar /run/mypage-engine/app'
+            }
+        }
+
+        post {
+            always {
                 sh "nohup java -jar /run/mypage-engine/app/mypage-engine-1.0.0-standalone.jar -m mypage-engine.main --config /run/mypage-engine/config.edn &"
             }
         }
+
     }
 }
