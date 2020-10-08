@@ -5,7 +5,8 @@
     [clojure.java.io :as io]
     [taoensso.timbre :as log]
     [clj-time.core :as time]
-    [mypage-engine.core :refer [get-config]]
+    [mypage-engine.core :refer [read-edn]]
+
     ))
 
 (def config (get-config))
@@ -14,9 +15,9 @@
 (def has-credentials? (.exists (io/file cred-path)))
 
 (when (not has-credentials?)
-  (log/error "\n\n  NO PATH TO KEYS FOUND - " cred-path)
-  )
+  (log/error "\n\n  NO PATH TO KEYS FOUND - " cred-path))
 
+;; TODO use config for these
 (def secrets
   {:auth-data   (if has-credentials?
                   (clojure.edn/read-string (slurp (str cred-path "/auth-data")))
@@ -64,8 +65,3 @@
     {:event-name :not-authenticated
      :data       nil}))
 
-(comment
-  (println secrets)
-
-  (println cred-path)
-  )

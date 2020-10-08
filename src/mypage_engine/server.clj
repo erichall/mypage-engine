@@ -1,12 +1,9 @@
 (ns mypage-engine.server
   (:require
     [org.httpkit.server :refer [run-server]]
-    [clj-totp.core :as totp]
+    [taoensso.timbre :as log]
     [mypage-engine.api_v1 :refer [app]]
     ))
-
-(def server-port 8885)
-(def server-ip "0.0.0.0")
 
 (defonce server-atom (atom nil))
 
@@ -17,24 +14,18 @@
     (reset! server-atom nil)))
 
 (defn handler
-  [state-atom request]
-  (app {:state-atom state-atom :request request}))
+  [state-atom config-atom request]
+  (app {:state-atom  state-atom
+        :request     request
+        :config-atom config-atom}))
 
 (defn start-server!
-  [state-atom]
+  [{:keys [state-atom config-atom]}]
   (when (nil? (deref server-atom))
     (do
-      (println (str "Starting server: " server-ip ":" server-port))
+      (log/info (str "Starting server: " (get @config-atom :server-ip) ":" (get @config-atom :server-port)))
       (reset! server-atom (run-server (fn [request]
-                                        (handler state-atom request))
-                                      {:port server-port :ip server-ip})))))
-
-(comment
-  (start-server! state-atom)
-  (stop-server!)
-
-
-  (totp/generate-key "Eric Hallstrom" "hallstrom.eric@gmail.com")
-  (totp/valid-code? "" 926280)
-  )
+                                        (handler state-atom config-atom request))
+                                      {:port (get @config-atom :server-port)
+                                       :ip   (get @config-atom :server-ip)})))))
 

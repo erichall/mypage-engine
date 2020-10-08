@@ -37,8 +37,7 @@
                                       :state state}}))
 
     (broadcast! {:data       {:visitors (-> (deref sockets-atom) keys count)}
-                 :event-name :page-count})
-    ))
+                 :event-name :page-count})))
 
 (defn disconnect!
   [channel status]
@@ -52,10 +51,7 @@
     (send! channel (str {:event-name :connection-closed}))
     (swap! sockets-atom dissoc id-to-be-removed)
     (broadcast! {:data       {:visitors (-> (deref sockets-atom) keys count)}
-                 :event-name :page-count})
-    ))
-
-
+                 :event-name :page-count})))
 
 (defn get-id-from-request
   [request]
@@ -64,40 +60,37 @@
       second))
 
 (defn handler
-  [state-atom channel args]
+  [state-atom config-atom channel args]
   (let [{:keys [event-name data]} (clojure.edn/read-string args)]
 
     (condp = event-name
 
       :page-selected (send! channel (str (is-authenticated? data)))
 
-      :create-post (println "We should create a new post..." data)
+      :create-post (log/info (str "We should create a new post..." data))
 
       :login (send! channel (str (authenticate data)))
 
       :vote-down (swap! state-atom assoc-in [:posts (keyword (:id data)) :points] (dec (get-in (deref state-atom) [:posts (keyword (:id data)) :points])))
       :vote-up (swap! state-atom assoc-in [:posts (keyword (:id data)) :points] (inc (get-in (deref state-atom) [:posts (keyword (:id data)) :points])))
 
-      :pong (println "Pong!")
+      :pong (log/info "Pong!")
 
       ; else
-      (println "No matching clause " event-name)
+      (log/error "No matching clause " event-name)
       ))
   )
 
 ;; https://gist.github.com/viperscape/8529476 handle dead clients
 ;; or handle through nginx?
-;; TODO change with-channel to as-channel
 (defn ws-handler
-  [request & args]
-  (let [trigger-event (:trigger-event (first args))
-        state-atom (:state-atom (first args))]
-    (with-channel request channel
-                  (connect! channel (deref state-atom))
-                  (on-close channel (fn [status]
-                                      (disconnect! channel status)))
-                  (on-receive channel (fn [data]
-                                        (handler state-atom channel data))))))
+  [{:keys [state-atom config-atom request]}]
+  (with-channel request channel
+                (connect! channel (deref state-atom))
+                (on-close channel (fn [status]
+                                    (disconnect! channel status)))
+                (on-receive channel (fn [data]
+                                      (handler state-atom config-atom channel data)))))
 
 (defn initialize-ping-clients
   [{:keys [delay] :or {delay (* 1000 10)}}]
@@ -108,8 +101,6 @@
             (recur))))
 
 (comment
-
-
 
   (-> (deref sockets-atom)
       vals

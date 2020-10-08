@@ -6,7 +6,6 @@
                  [org.clojure/clojure "1.10.0"]
                  [ysera "1.2.0"]
                  [http-kit "2.3.0"]
-                 [clj-totp "0.1.0"]
                  [clj-time "0.15.0"]
                  [org.clojure/data.json "0.2.6"]
                  [nrepl/nrepl "0.6.0"]
@@ -18,14 +17,8 @@
 
   :repl-options {:init-ns mypage-engine.main}
 
-  :profiles {:dev     {:resource-paths ["config/dev"]
-                       :injections     [(println "including dev profile")]
-                       }
+  :profiles {:dev     {:injections [(println "including dev profile")]}
              :uberjar {
-                       :resource-paths ["config/release"]
-                       :aot            :all
-                       :injections     [(println "including prod profile")]
-                       }
-             }
-
-  )
+                       :aot        :all
+                       :injections [(println "including prod profile")]
+                       }})
