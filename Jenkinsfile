@@ -25,12 +25,10 @@ pipeline {
                 sh 'mv target/mypage-engine-1.0.0-standalone.jar /run/mypage-engine/app'
             }
         }
-
-        post {
+    }
+    post {
             always {
                 sh "nohup java -jar /run/mypage-engine/app/mypage-engine-1.0.0-standalone.jar -m mypage-engine.main --config /run/mypage-engine/config.edn &"
             }
-        }
-
-    }
+         }
 }
