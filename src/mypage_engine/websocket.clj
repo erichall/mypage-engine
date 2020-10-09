@@ -5,9 +5,41 @@
             [taoensso.timbre :as log]
             [mypage-engine.core :refer [uuid]]
             [mypage-engine.security :refer [authenticate is-authenticated?]]
-            ))
+            [clojure.spec.alpha :as s]))
 
 (defonce sockets-atom (atom {}))
+
+(s/def ::title string?)
+(s/def ::content string?)
+(s/def ::date-created string?)
+(s/def ::author string?)
+(s/def ::votes int?)
+(s/def ::comments string?)
+(s/def ::published? boolean?)
+(s/def ::id string?)
+(s/def ::post (s/keys :req-un [::title ::content ::date-created ::author ::votes ::comments ::published? ::id]))
+
+(s/explain-data ::post {:title        "heej"
+                        :content      "poo"
+                        :date-created "2020-01-01"
+                        :author       "eric"
+                        :votes        2
+                        :comments     "ba"
+                        :published?   false
+                        :id           (uuid)})
+
+(defn post-template
+  [extras]
+  (merge {
+          :title        ""
+          :content      ""
+          :date-created (mypage-engine.core/now)
+          :author       ""
+          :votes        0
+          :comments     ""
+          :published?   false
+          :id           (uuid)
+          } extras))
 
 (defn create-socket
   [{:keys [channel]}]
@@ -67,6 +99,8 @@
 
       :page-selected (send! channel (str (is-authenticated? data)))
 
+      :post-template (send! channel (str {:event-name :post-template
+                                          :data       {:template (post-template {})}}))
       :create-post (log/info (str "We should create a new post..." data))
 
       :login (send! channel (str (authenticate data)))
