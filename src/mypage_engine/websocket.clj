@@ -4,6 +4,8 @@
             [clojure.set :refer [map-invert]]
             [taoensso.timbre :as log]
             [mypage-engine.core :refer [uuid]]
+            [clojure.edn :as edn]
+            [clojure.string :refer [split]]
             [mypage-engine.security :refer [authenticate is-authenticated?]]
             [clojure.spec.alpha :as s]))
 
@@ -88,12 +90,12 @@
 (defn get-id-from-request
   [request]
   (-> (get request :query-string)
-      (clojure.string/split #"=")
+      (split #"=")
       second))
 
 (defn handler
   [state-atom channel args]
-  (let [{:keys [event-name data]} (clojure.edn/read-string args)]
+  (let [{:keys [event-name data]} (edn/read-string args)]
 
     (condp = event-name
 

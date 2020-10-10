@@ -31,7 +31,6 @@
     ))
 
 (def app
-  (-> app-routes
-      set-default-headers-middleware))
+  (set-default-headers-middleware app-routes))
 
 

@@ -9,12 +9,18 @@ pipeline {
                 echo 'Done building'
             }
         }
+        stage('Lint') {
+                    steps {
+                        echo 'Linting..'
+                        sh "lein lint"
+                    }
+                }
         stage('Test') {
             steps {
                 echo 'Testing..'
+                sh "lein test"
             }
         }
-
         stage("Deploy") {
             steps {
                 echo 'Deploy!'

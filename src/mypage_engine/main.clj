@@ -5,6 +5,7 @@
                                         print-exit]]
             [mypage-engine.security :refer [initialize-secrets]]
             [taoensso.timbre :as t]
+            [clojure.edn :as edn]
             [taoensso.timbre.appenders.core :as appenders]
             [taoensso.timbre.appenders.3rd-party.rotor :as rotor]
             [nrepl.server :refer [start-server stop-server]])
@@ -59,13 +60,17 @@
 (defn start-repl!
   []
   (when (nil? (deref repl-server-atom))
-    (do
-      (t/info (str "Starting repl at " (config :repl-ip) ":" (config :repl-port)))
-      (reset! repl-server-atom (start-server
-                                 :bind (config :repl-ip)
-                                 :port (config :repl-port)
-                                 :greeting (fn [x] (println (str "Hello" x)))
-                                 :greeting-fn (fn [x] (println (str "Welcome! " x))))))))
+    (t/info
+      (str
+        "Starting repl at "
+        (config :repl-ip)
+        ":"
+        (config :repl-port)))
+    (reset! repl-server-atom (start-server
+                               :bind (config :repl-ip)
+                               :port (config :repl-port)
+                               :greeting (fn [x] (println (str "Hello" x)))
+                               :greeting-fn (fn [x] (println (str "Welcome! " x)))))))
 
 (defn restart-repl!
   []
@@ -80,7 +85,7 @@
         config-file (get conf "--config")]
     (if (and (nil? config-file) (not (exists? config-file)))
       (print-exit (str "Unable to find config-file: " config-file " provide it with --config <file-name>.edn"))
-      (let [conf (-> (slurp config-file) clojure.edn/read-string)]
+      (let [conf (edn/read-string (slurp config-file))]
         (reset! config-atom conf))))
 
   (initialize-secrets (deref config-atom))
@@ -95,7 +100,7 @@
 
 (comment
 
-  (reset! config-atom (-> "config.edn" slurp clojure.edn/read-string))
+  (reset! config-atom (-> "config.edn" slurp edn/read-string))
 
   (initialize-secrets (deref config-atom))
 

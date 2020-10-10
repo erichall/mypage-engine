@@ -1,5 +1,5 @@
 (ns mypage-engine.core
-  (:require [ysera.test :refer [is= is error?]]
+  (:require [clojure.test :refer [is]]
             [clojure.java.io :as io]
             [clojure.java.io :refer [resource]]
             [clojure.data.json :refer [read-json write-str]]
@@ -23,8 +23,7 @@
 (defn now
   "Return the current time in the given time zone as string"
   {:test (fn []
-           (is= (now :zone "Europe/Stockholm")
-                (now :zone "Europe/Stockholm")))}
+           (is (= (now :zone "Europe/Stockholm") (now :zone "Europe/Stockholm"))))}
   [& {zone :zone :or {zone "Europe/Stockholm"}}]
   (let [zone-id (ZoneId/of zone)]
     (.format (ZonedDateTime/ofInstant (Instant/now) zone-id) (DateTimeFormatter/ofPattern "yyyy-MM-dd-HH:mm"))))
@@ -37,12 +36,14 @@
 (defn directory-exists?
   "Check if directory exists"
   {:test (fn []
-           (is= (directory-exists? "src")
-                true)
-           (is= (directory-exists? "srcc")
-                false))}
+           (is (= (directory-exists? "src")
+                  true))
+           (is (= (directory-exists? "srcc")
+                  false)))}
   [root]
   (.isDirectory (io/file root)))
+
+(meta #'directory-exists?)
 
 (defn exists?
   "Check if a file exists"
@@ -51,8 +52,6 @@
 
 (defn create-directory!
   "Create directory if it does not exists"
-  {:test (fn []
-           (error? (create-directory! "src")))}
   [root]
   (if-not (directory-exists? root)
     (.mkdir (io/file root))
@@ -68,20 +67,18 @@
 
 (defn replace-space-with-dash
   {:test (fn []
-           (is= (replace-space-with-dash "This is my post") "This-is-my-post")
-           (is= (replace-space-with-dash nil) nil)
-           (is= (replace-space-with-dash "This is my post ") "This-is-my-post")
-           (is= (replace-space-with-dash " This is my post ") "This-is-my-post")
-           (is= (replace-space-with-dash "notstring") "notstring"))}
+           (is (= (replace-space-with-dash "This is my post") "This-is-my-post"))
+           (is (= (replace-space-with-dash nil) nil))
+           (is (= (replace-space-with-dash "This is my post ") "This-is-my-post"))
+           (is (= (replace-space-with-dash " This is my post ") "This-is-my-post"))
+           (is (= (replace-space-with-dash "notstring") "notstring")))}
   [str]
-  (if (= str nil)
-    nil
-    (-> (str/trim str)
-        (str/replace #" " "-"))))
+  (when-not (nil? str)
+    (str/replace (str/trim str) #" " "-")))
 
 (defn timestamp-with-str
   "Creates a filename with a timestamp"
-  {:test (fn [] (is= (timestamp-with-str "This is my title") (str (now) "-This is my title")))}
+  {:test (fn [] (is (= (timestamp-with-str "This is my title") (str (now) "-This is my title"))))}
   [string-title]
   (str (now) "-" string-title))
 
@@ -103,10 +100,10 @@
 (defn body->str
   "Convert a any type of the body to a string"
   [{:keys [body] :as request}]
-  (if (or (nil? body) (= (not (string? body))))
+  (if (or (nil? body) (not (string? body)))
     request
     (update-in request [:body] (fn [body] (str (write-str body))))))
 
 (defn read-edn
   [file]
-  (-> (slurp file) clojure.edn/read-string))
+  (edn/read-string (slurp file)))

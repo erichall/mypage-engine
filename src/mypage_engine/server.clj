@@ -22,10 +22,14 @@
 (defn start-server!
   [{:keys [state-atom config-atom]}]
   (when (nil? (deref server-atom))
-    (do
-      (log/info (str "Starting server: " (get @config-atom :server-ip) ":" (get @config-atom :server-port)))
-      (reset! server-atom (run-server (fn [request]
-                                        (handler state-atom config-atom request))
-                                      {:port (get @config-atom :server-port)
-                                       :ip   (get @config-atom :server-ip)})))))
+    (log/info
+      (str
+        "Starting server: "
+        (get @config-atom :server-ip)
+        ":"
+        (get @config-atom :server-port)))
+    (reset! server-atom (run-server (fn [request]
+                                      (handler state-atom config-atom request))
+                                    {:port (get @config-atom :server-port)
+                                     :ip   (get @config-atom :server-ip)}))))
 
