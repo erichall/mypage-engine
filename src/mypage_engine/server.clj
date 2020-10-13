@@ -32,4 +32,3 @@
                                       (handler state-atom config-atom request))
                                     {:port (get @config-atom :server-port)
                                      :ip   (get @config-atom :server-ip)}))))
-

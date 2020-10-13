@@ -94,7 +94,7 @@
       second))
 
 (defn handler
-  [state-atom channel args]
+  [state-atom config-atom channel args]
   (let [{:keys [event-name data]} (edn/read-string args)]
 
     (condp = event-name
@@ -103,6 +103,7 @@
 
       :post-template (send! channel (str {:event-name :post-template
                                           :data       {:template (post-template {})}}))
+      ;; TODO
       :create-post (log/info (str "We should create a new post..." data))
 
       :login (send! channel (str (authenticate data)))
@@ -120,13 +121,13 @@
 ;; https://gist.github.com/viperscape/8529476 handle dead clients
 ;; or handle through nginx?
 (defn ws-handler
-  [{:keys [state-atom request]}]
+  [{:keys [state-atom request config-atom]}]
   (with-channel request channel
                 (connect! channel (deref state-atom))
                 (on-close channel (fn [status]
                                     (disconnect! channel status)))
                 (on-receive channel (fn [data]
-                                      (handler state-atom channel data)))))
+                                      (handler state-atom config-atom channel data)))))
 
 (defn initialize-ping-clients
   [{:keys [delay] :or {delay (* 1000 10)}}]

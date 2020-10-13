@@ -6,3 +6,4 @@ target/
 *.iml
 .nrepl-port
 config.edn
+posts/

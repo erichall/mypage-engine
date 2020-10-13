@@ -27,11 +27,11 @@ To start the service:
     systemctl start mypage-eengine
 
 To enable the service on reboot:
-    
+
     systemctl enable mypage-engine
 
 The crux on running systemctl without the ability to enter a password!
-    
+
     sudo su
     cd /etc/sudoers.d
     touch mypage-engine
