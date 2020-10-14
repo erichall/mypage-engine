@@ -15,10 +15,7 @@
   (println msg)
   (System/exit 0))
 
-(defn throw-error
-  "Throws an error"
-  [msg]
-  (throw (Exception. msg)))
+
 
 (defn now
   "Return the current time in the given time zone as string"
@@ -28,42 +25,7 @@
   (let [zone-id (ZoneId/of zone)]
     (.format (ZonedDateTime/ofInstant (Instant/now) zone-id) (DateTimeFormatter/ofPattern "yyyy-MM-dd-HH:mm"))))
 
-(defn list-files-in-directory
-  "Lists files in a directory"
-  [root]
-  (map (fn [file] file) (.list (io/file root))))
 
-(defn directory-exists?
-  "Check if directory exists"
-  {:test (fn []
-           (is (= (directory-exists? "src")
-                  true))
-           (is (= (directory-exists? "srcc")
-                  false)))}
-  [root]
-  (.isDirectory (io/file root)))
-
-(meta #'directory-exists?)
-
-(defn exists?
-  "Check if a file exists"
-  [file]
-  (.exists (io/file file)))
-
-(defn create-directory!
-  "Create directory if it does not exists"
-  [root]
-  (if-not (directory-exists? root)
-    (.mkdir (io/file root))
-    (throw-error (str "Directory: " root " already exists!"))))
-
-(defn data->file!
-  "Write a post to disk"
-  [root file-name data]
-  (let [post-path (str root "/" file-name)]
-    (if-not (exists? post-path)
-      (spit (str post-path ".json") data)
-      (throw-error (str "Autch! post already exists " post-path)))))
 
 (defn replace-space-with-dash
   {:test (fn []

@@ -1,8 +1,8 @@
 (ns mypage-engine.main
   (:require [mypage-engine.server :refer [start-server! stop-server!]]
             [mypage-engine.websocket :as ws]
-            [mypage-engine.core :refer [exists?
-                                        print-exit]]
+            [mypage-engine.io-handler :refer [exists?]]
+            [mypage-engine.core :refer [print-exit]]
             [mypage-engine.security :refer [initialize-secrets]]
             [taoensso.timbre :as t]
             [clojure.edn :as edn]

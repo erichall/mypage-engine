@@ -7,6 +7,7 @@
             [clojure.edn :as edn]
             [clojure.string :refer [split]]
             [mypage-engine.security :refer [authenticate is-authenticated?]]
+            [mypage-engine.io-handler :refer [create-post!]]
             [clojure.spec.alpha :as s]))
 
 (defonce sockets-atom (atom {}))
@@ -34,13 +35,13 @@
   [extras]
   (merge {
           :title        ""
-          :content      ""
           :date-created (mypage-engine.core/now)
           :author       ""
           :votes        0
           :comments     ""
           :published?   false
           :id           (uuid)
+          :content      ""
           } extras))
 
 (defn create-socket
@@ -104,7 +105,13 @@
       :post-template (send! channel (str {:event-name :post-template
                                           :data       {:template (post-template {})}}))
       ;; TODO
-      :create-post (log/info (str "We should create a new post..." data))
+      :create-post (let [error? (try (create-post! (deref config-atom) data)
+                                     (catch AssertionError e
+                                       (.getMessage e)))]
+                     (send! channel (str {:event-name :post-created
+                                          :data       {:status (if error? :error :created)
+                                                       :error  (when error? error?)}}))
+                     )
 
       :login (send! channel (str (authenticate data)))
 
