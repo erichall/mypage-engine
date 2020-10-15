@@ -73,9 +73,9 @@
 
 (defn create-post!
   "Write post as .edn to disk with the title as name, 'post-title.edn', if the post exists already,
-  a number is inserted, 'post-title-2.edn'"
+  a number is inserted, 'post-title-2.edn', returns the created post if successful"
   [{:keys [post-root] :as config} {:keys [post]}]
-  {:pre  [(map? config) (map? post) (contains? post :title) (not-empty? (:title post))]}
+  {:pre [(map? config) (map? post) (contains? post :title) (not-empty? (:title post))]}
   (let [title (:title post)
         file-name (str title ".edn")
         matching-files (get-matching-edn-files post-root file-name)]
@@ -84,4 +84,5 @@
                         (if (empty? matching-files)
                           file-name
                           (str title "-" (count matching-files) ".edn")))
-                   (clojure.pprint/write post :stream nil)))))
+                   (clojure.pprint/write post :stream nil)))
+    post))

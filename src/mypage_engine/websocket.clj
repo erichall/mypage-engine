@@ -105,13 +105,16 @@
       :post-template (send! channel (str {:event-name :post-template
                                           :data       {:template (post-template {})}}))
       ;; TODO
-      :create-post (let [error? (try (create-post! (deref config-atom) data)
-                                     (catch AssertionError e
-                                       (.getMessage e)))]
+      :create-post (let [error-or-post? (try (create-post! (deref config-atom) data)
+                                             (catch AssertionError e
+                                               (.getMessage e)))
+                         response (if (string? error-or-post?)
+                                    {:status :error
+                                     :error  error-or-post?}
+                                    {:status :success
+                                     :post   error-or-post?})]
                      (send! channel (str {:event-name :post-created
-                                          :data       {:status (if error? :error :created)
-                                                       :error  (when error? error?)}}))
-                     )
+                                          :data       response})))
 
       :login (send! channel (str (authenticate data)))
 
