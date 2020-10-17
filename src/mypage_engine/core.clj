@@ -15,8 +15,6 @@
   (println msg)
   (System/exit 0))
 
-
-
 (defn now
   "Return the current time in the given time zone as string"
   {:test (fn []
@@ -27,13 +25,13 @@
 
 
 
-(defn replace-space-with-dash
+(defn space->dash
   {:test (fn []
-           (is (= (replace-space-with-dash "This is my post") "This-is-my-post"))
-           (is (= (replace-space-with-dash nil) nil))
-           (is (= (replace-space-with-dash "This is my post ") "This-is-my-post"))
-           (is (= (replace-space-with-dash " This is my post ") "This-is-my-post"))
-           (is (= (replace-space-with-dash "notstring") "notstring")))}
+           (is (= (space->dash "This is my post") "This-is-my-post"))
+           (is (= (space->dash nil) nil))
+           (is (= (space->dash "This is my post ") "This-is-my-post"))
+           (is (= (space->dash " This is my post ") "This-is-my-post"))
+           (is (= (space->dash "notstring") "notstring")))}
   [str]
   (when-not (nil? str)
     (str/replace (str/trim str) #" " "-")))
@@ -69,3 +67,4 @@
 (defn read-edn
   [file]
   (edn/read-string (slurp file)))
+

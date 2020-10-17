@@ -7,7 +7,7 @@
             [clojure.edn :as edn]
             [clojure.string :refer [split]]
             [mypage-engine.security :refer [authenticate is-authenticated?]]
-            [mypage-engine.io-handler :refer [create-post!]]
+            [mypage-engine.io-handler :as ioh]
             [clojure.spec.alpha :as s]))
 
 (defonce sockets-atom (atom {}))
@@ -37,7 +37,7 @@
           :title        ""
           :date-created (mypage-engine.core/now)
           :author       ""
-          :votes        0
+          :points       0
           :comments     ""
           :published?   false
           :id           (uuid)
@@ -97,15 +97,17 @@
 (defn handler
   [state-atom config-atom channel args]
   (let [{:keys [event-name data]} (edn/read-string args)]
+    (println "EVENT" event-name data (type event-name) (count (str event-name)) (= event-name :pf))
 
     (condp = event-name
+
 
       :page-selected (send! channel (str (is-authenticated? data)))
 
       :post-template (send! channel (str {:event-name :post-template
                                           :data       {:template (post-template {})}}))
-      ;; TODO
-      :create-post (let [error-or-post? (try (create-post! (deref config-atom) data)
+
+      :create-post (let [error-or-post? (try (ioh/create-post! (deref config-atom) data)
                                              (catch AssertionError e
                                                (.getMessage e)))
                          response (if (string? error-or-post?)
@@ -123,8 +125,42 @@
 
       :pong (log/info "Pong!")
 
+      :front-page-facts (send! channel (str {:event-name :front-page-facts
+                                             :data       {:path [:pages :front-page]
+                                                          :fact {:intro "Hi! I'm Eric."
+                                                                 :about "I work as a software engineer at TietoEvry. I received my Masters in Computer Science from the Royal Institute of Technology in Sweden. Apart from coding and tinkering with electronics I'm interested in baking, brewing and cooking."}}}))
+      :resume-facts (send! channel (str {:event-name :resume-page-facts
+                                         :data       {:path [:pages :resume]
+                                                      :fact {}}}))
+
+
+
+      :posts-facts (send! channel (str {:event-name :posts-page-facts
+                                        :data       {:path [:pages :posts]
+                                                     :fact {:title "Posts"
+                                                            :intro "Some writing."
+                                                            :posts (ioh/read-posts-from-disk @state-atom @config-atom)}}}))
+
+      :post-facts (let [post-or-error (try (ioh/get-post @config-atom (:slug data))
+                                           (catch AssertionError _ (str "No post named " (:slug data) "...")))]
+                    (println "THE FUCK" post-or-error)
+                    (send! channel (str {:event-name :post-page-facts
+                                         :data       {:path [:pages :post]
+                                                      :fact {:title "Post"
+                                                             :intro "This is a post"
+                                                             :post  (when post-or-error post-or-error)
+                                                             :error (when (string? post-or-error) post-or-error)}}})))
+
+      :portfolio-facts (send! channel (str {:event-name :portfolio-page-facts
+                                            :data       {:path [:pages :portfolio]
+                                                         :fact {}}}))
+
+      :login-facts (send! channel (str {:event-name :login-page-facts
+                                        :data       {:path [:pages :login]
+                                                     :fact {}}}))
+
       ; else
-      (log/error "No matching clause " event-name)
+      (log/info (str "No matching clause " event-name " type: " (type event-name)))
       ))
   )
 

@@ -1,7 +1,7 @@
 (ns mypage-engine.main
   (:require [mypage-engine.server :refer [start-server! stop-server!]]
             [mypage-engine.websocket :as ws]
-            [mypage-engine.io-handler :refer [exists?]]
+            [mypage-engine.io-handler :refer [exists? read-posts-from-disk]]
             [mypage-engine.core :refer [print-exit]]
             [mypage-engine.security :refer [initialize-secrets]]
             [taoensso.timbre :as t]
@@ -26,29 +26,24 @@
                                 :rotor (rotor/rotor-appender {:path    (config :log-file-name)
                                                               :backlog 20})}}))
 (def initial-state
-  {:content   {
-               :front-page {:intro "Hi! I'm Eric."
-                            :about "I work as a software engineer at TietoEvry. I received my Masters in Computer Science from the Royal Institute of Technology in Sweden. Apart from coding and tinkering with electronics I'm interested in baking, brewing and cooking."}
-               :resume     {:text "Hello this is my resume."}
-               :about-me   {:text "I'm a developer."}
-               :posts      {:text "Here is my thoughts about things."}
-               :portfolio  {:text "Here is what I've done."}
-               :header     {:title    "Eric Hallström"
-                            :subtitle "Software Engineer"}
-               }
-   :posts     {
-               :a {:points 2 :title "How is it to work as a developer" :created "2020-02-03" :content "boboo" :id "a" :author "Eric Hallström"}
-               :b {:points 10 :title "When consulting fails" :created "2020-04-03" :content "To be or not to be in here" :id "b" :author "Eric Hallström"}
-               :c {:points -20 :title "Are we there yet?" :created "2020-05-03" :content "What can we do about stuff" :id "c" :author "Eric Hallström"}
-               }
+  {:posts     nil
    :portfolio {:my-awesome-tool {:text "cool stuff"}}
+   :misc      {:header {:title    "Eric Hallström"
+                        :subtitle "Software Engineer"}}
+   :pages     {:front-page nil
+               :resume     nil
+               :posts      nil
+               :portfolio  nil
+               :login      nil
+               }
    })
 
 (when (nil? (deref state-atom))
   (add-watch state-atom
              :game-loop
              (fn [_ _ old-value new-value]
-               (ws/broadcast! {:data {:state new-value}})))
+               ;(ws/broadcast! {:data {:state new-value}})
+               ))
   (reset! state-atom initial-state))
 
 (defn stop-repl!
@@ -100,18 +95,21 @@
 
 (comment
 
-  (reset! config-atom (-> "config.edn" slurp edn/read-string))
+  (t/set-level! :fatal)
 
-  (initialize-secrets (deref config-atom))
+  (do
+    (reset! config-atom (-> "config.edn" slurp edn/read-string))
 
-  (start-server! {:state-atom state-atom :config-atom config-atom})
+    (reset! state-atom initial-state)
+    (initialize-secrets (deref config-atom))
+
+    (start-server! {:state-atom state-atom :config-atom config-atom}))
   (stop-server!)
 
   (ws/initialize-ping-clients {:delay (* 1000 10)})
 
   (deref state-atom)
 
-  (reset! state-atom initial-state)
 
   (ws/broadcast! {:data {:state (deref state-atom)}})
 
