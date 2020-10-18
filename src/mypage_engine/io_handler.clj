@@ -3,6 +3,7 @@
             [clojure.string :as str]
             [clj-time.coerce :as timec]
             [mypage-engine.core :as core]
+            [clojure.pprint :as pprint]
             [clojure.core.specs.alpha :as s]
             [clojure.test :refer [is]]
             [clojure.edn :as edn]))
@@ -28,8 +29,7 @@
 (defn get-file-names-in-directory
   [root]
   (let [files (file-seq (io/file root))]
-    (->> (filter (fn [f] (.isFile f)) files)
-         (map (fn [f] (.getName f))))))
+    (map (fn [f] (.getName f)) (filter (fn [f] (.isFile f)) files))))
 
 (defn exists?
   "Check if a file exists"
@@ -97,7 +97,7 @@
          (contains? post :title)
          (not-empty? (:title post))
          (not (exists? (str post-root (core/space->dash (:title post)) ".edn")))]}
-  (data->file! (str post-root (core/space->dash (:title post)) ".edn") (clojure.pprint/write post :stream nil))
+  (data->file! (str post-root (core/space->dash (:title post)) ".edn") (pprint/write post :stream nil))
   post)
 
 
@@ -115,15 +115,14 @@
   (let [posts (:posts state)]
     (when (not-empty? posts)
       (apply min-key (fn [{:keys [date-created]}]
-                       (-> (string->date date-created)
-                           date->unix))))))
+                       (date->unix (string->date date-created)))))))
 
 (defn read-posts-from-disk
   "Get posts from 'post-root'"
   [state config]
   (let [files-in-root (list-files-in-directory (:post-root config))
         n-posts-in-state (count (keys (:posts state)))]
-    (if (and (> n-posts-in-state 0) (= n-posts-in-state (count files-in-root)))
+    (if (and (pos? n-posts-in-state) (= n-posts-in-state (count files-in-root)))
       {}
       (reduce (fn [acc path]
                 (let [post (edn/read-string (slurp path))]
