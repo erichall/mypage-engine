@@ -97,10 +97,8 @@
 (defn handler
   [state-atom config-atom channel args]
   (let [{:keys [event-name data]} (edn/read-string args)]
-    (println "EVENT" event-name data (type event-name) (count (str event-name)) (= event-name :pf))
 
     (condp = event-name
-
 
       :page-selected (send! channel (str (is-authenticated? data)))
 
@@ -120,8 +118,8 @@
 
       :login (send! channel (str (authenticate data)))
 
-      :vote-down (swap! state-atom assoc-in [:posts (keyword (:id data)) :points] (dec (get-in (deref state-atom) [:posts (keyword (:id data)) :points])))
-      :vote-up (swap! state-atom assoc-in [:posts (keyword (:id data)) :points] (inc (get-in (deref state-atom) [:posts (keyword (:id data)) :points])))
+      :vote-down (ioh/vote! :down @config-atom (:id data))
+      :vote-up (ioh/vote! :up @config-atom (:id data))
 
       :pong (log/info "Pong!")
 
@@ -133,17 +131,14 @@
                                          :data       {:path [:pages :resume]
                                                       :fact {}}}))
 
-
-
       :posts-facts (send! channel (str {:event-name :posts-page-facts
                                         :data       {:path [:pages :posts]
                                                      :fact {:title "Posts"
                                                             :intro "Some writing."
                                                             :posts (ioh/read-posts-from-disk @state-atom @config-atom)}}}))
 
-      :post-facts (let [post-or-error (try (ioh/get-post @config-atom (:slug data))
+      :post-facts (let [post-or-error (try (ioh/get-post-by :name @config-atom (:slug data))
                                            (catch AssertionError _ (str "No post named " (:slug data) "...")))]
-                    (println "THE FUCK" post-or-error)
                     (send! channel (str {:event-name :post-page-facts
                                          :data       {:path [:pages :post]
                                                       :fact {:title "Post"

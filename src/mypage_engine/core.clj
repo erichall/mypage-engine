@@ -68,3 +68,6 @@
   [file]
   (edn/read-string (slurp file)))
 
+(defn parse-int [s]
+  (Integer/parseInt (re-find #"\A-?\d+" s)))
+

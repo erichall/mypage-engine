@@ -12,6 +12,14 @@
   [x]
   (boolean (not-empty x)))
 
+(defmulti post-path (fn [_ post] (type post)))
+(defmethod post-path clojure.lang.PersistentArrayMap
+  [post-root post]
+  (str post-root (core/space->dash (:title post)) ".edn"))
+(defmethod post-path String
+  [post-root title]
+  (str post-root (core/space->dash title) ".edn"))
+
 (defn throw-error
   "Throws an error"
   [msg]
@@ -89,6 +97,10 @@
          .list
          (filterv (partial re-matches name-reg)))))
 
+(defn pretty-str
+  [d]
+  (pprint/write d :stream nil))
+
 (defn create-post!
   "Write post as .edn to disk with the title as name, 'post-title.edn'
   DO NOT tolerate duplicated titles..."
@@ -96,10 +108,9 @@
   {:pre [(map? config) (map? post)
          (contains? post :title)
          (not-empty? (:title post))
-         (not (exists? (str post-root (core/space->dash (:title post)) ".edn")))]}
-  (data->file! (str post-root (core/space->dash (:title post)) ".edn") (pprint/write post :stream nil))
+         (not (exists? (post-path post-root post)))]}
+  (data->file! (post-path post-root post) (pretty-str post))
   post)
-
 
 (defn string->date
   "Parse a string date in the format yyyy-MM-dd to a java date."
@@ -128,14 +139,35 @@
                 (let [post (edn/read-string (slurp path))]
                   (assoc acc (:id post) post))) {} files-in-root))))
 
-(defn get-post
+
+
+(defmulti get-post-by (fn [type _ _] type))
+(defmethod get-post-by :name
+  [_ {:keys [post-root]} post-name]
   "Get posts with a particular name from post-root.
-  Handles names with duplicates, such as name, name-1, name-2 etc.
-  And only deals with .edn files"
-  [{:keys [post-root]} post-name]
+        Handles names with duplicates, such as name, name-1, name-2 etc.
+        And only deals with .edn files"
   {:pre [(string? post-name)
          (dir-exists? post-root)
-         (exists? (str post-root (core/space->dash post-name) ".edn"))]}
-  (-> (str post-root post-name ".edn")
+         (exists? (post-path post-root post-name))]}
+  (-> (post-path post-root post-name)
       slurp
       edn/read-string))
+
+;; it really sucks now to have all posts as files instead of using a db......
+(defmethod get-post-by :id
+  [_ {:keys [post-root]} post-id]
+  (->> (list-files-in-directory post-root)
+       (reduce (fn [acc path]
+                 (let [f (edn/read-string (slurp path))]
+                   (if (= (:id f) post-id)
+                     (reduced f)
+                     acc))) nil)))
+
+(defmulti vote! (fn [type _ _] type))
+(defmethod vote! :up [_ {:keys [post-root] :as config} id]
+  (let [post (get-post-by :id config id)]
+    (spit (post-path post-root post) (pretty-str (update post :points inc)))))
+(defmethod vote! :down [_ {:keys [post-root] :as config} id]
+  (let [post (get-post-by :id config id)]
+    (spit (post-path post-root post) (pretty-str (update post :points dec)))))

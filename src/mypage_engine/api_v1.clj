@@ -11,10 +11,7 @@
 (defn set-default-headers-middleware
   [handler]
   (fn [request & args]
-    (-> (handler request)
-        (header "X-app" "mypage-engine-v1")
-        (header "Content-Type" "text/json; charset=UTF-8")
-        (header "Access-Control-Allow-Headers" "Accept,Content-Type, text/json"))))
+    (handler request)))
 
 (defn app-routes
   [{:keys [request] :as args}]
