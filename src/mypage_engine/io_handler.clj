@@ -144,12 +144,7 @@
 (defmulti get-post-by (fn [type _ _] type))
 (defmethod get-post-by :name
   [_ {:keys [post-root]} post-name]
-  "Get posts with a particular name from post-root.
-        Handles names with duplicates, such as name, name-1, name-2 etc.
-        And only deals with .edn files"
-  {:pre [(string? post-name)
-         (dir-exists? post-root)
-         (exists? (post-path post-root post-name))]}
+  {:pre [(string? post-name) (dir-exists? post-root) (exists? (post-path post-root post-name))]}
   (-> (post-path post-root post-name)
       slurp
       edn/read-string))
@@ -157,12 +152,13 @@
 ;; it really sucks now to have all posts as files instead of using a db......
 (defmethod get-post-by :id
   [_ {:keys [post-root]} post-id]
-  (->> (list-files-in-directory post-root)
-       (reduce (fn [acc path]
-                 (let [f (edn/read-string (slurp path))]
-                   (if (= (:id f) post-id)
-                     (reduced f)
-                     acc))) nil)))
+  (reduce (fn [acc path]
+            (let [f (edn/read-string (slurp path))]
+              (if (= (:id f) post-id)
+                (reduced f)
+                acc))) nil
+          (list-files-in-directory post-root)
+          ))
 
 (defmulti vote! (fn [type _ _] type))
 (defmethod vote! :up [_ {:keys [post-root] :as config} id]
