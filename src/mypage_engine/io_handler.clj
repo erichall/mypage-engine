@@ -139,8 +139,6 @@
                 (let [post (edn/read-string (slurp path))]
                   (assoc acc (:id post) post))) {} files-in-root))))
 
-
-
 (defmulti get-post-by (fn [type _ _] type))
 (defmethod get-post-by :name
   [_ {:keys [post-root]} post-name]
@@ -156,9 +154,7 @@
             (let [f (edn/read-string (slurp path))]
               (if (= (:id f) post-id)
                 (reduced f)
-                acc))) nil
-          (list-files-in-directory post-root)
-          ))
+                acc))) nil (list-files-in-directory post-root)))
 
 (defmulti vote! (fn [type _ _] type))
 (defmethod vote! :up [_ {:keys [post-root] :as config} id]

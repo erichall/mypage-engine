@@ -90,8 +90,7 @@
     (restart-repl!)
     (ws/initialize-ping-clients {:delay (* 1000 (config :ping-clients-delay-sec))}))
 
-  (start-server! {:state-atom state-atom :config-atom config-atom})
-  )
+  (start-server! {:state-atom state-atom :config-atom config-atom}))
 
 (comment
 
@@ -108,12 +107,7 @@
 
   (ws/initialize-ping-clients {:delay (* 1000 10)})
 
-  (deref state-atom)
-
-
   (ws/broadcast! {:data {:state (deref state-atom)}})
-
-  (swap! state-atom assoc-in [:content :front-page :text] "This is awesome")
 
   (totp/generate-key "Eric Hallstrom" "hallstrom.eric@gmail.com")
   )
