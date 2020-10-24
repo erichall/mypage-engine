@@ -103,6 +103,7 @@
     (initialize-secrets (deref config-atom))
 
     (start-server! {:state-atom state-atom :config-atom config-atom}))
+
   (stop-server!)
 
   (ws/initialize-ping-clients {:delay (* 1000 10)})

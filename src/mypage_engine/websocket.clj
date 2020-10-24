@@ -16,17 +16,17 @@
 (s/def ::content string?)
 (s/def ::date-created string?)
 (s/def ::author string?)
-(s/def ::votes int?)
+(s/def ::points int?)
 (s/def ::comments string?)
 (s/def ::published? boolean?)
 (s/def ::id string?)
-(s/def ::post (s/keys :req-un [::title ::content ::date-created ::author ::votes ::comments ::published? ::id]))
+(s/def ::post (s/keys :req-un [::title ::content ::date-created ::author ::points ::comments ::published? ::id]))
 
 (s/explain-data ::post {:title        "heej"
                         :content      "poo"
                         :date-created "2020-01-01"
                         :author       "eric"
-                        :votes        2
+                        :points       2
                         :comments     "ba"
                         :published?   false
                         :id           (uuid)})
@@ -113,46 +113,69 @@
                                      :error  error-or-post?}
                                     {:status :success
                                      :post   error-or-post?})]
-                     (send! channel (str {:event-name :post-created
-                                          :data       response})))
+                     (do
+                       (send! channel (str {:event-name :post-created
+                                            :data       response}))
+                       (when (= (:status response) :success)
+                         (broadcast! {:event-name :fact-change
+                                      :data       {:paths [[:pages :posts :posts (:id error-or-post?)]]
+                                                   :fact  error-or-post?}
+                                      }))))
 
       :login (send! channel (str (authenticate data)))
 
-      :vote-down (ioh/vote! :down @config-atom (:id data))
-      :vote-up (ioh/vote! :up @config-atom (:id data))
-
+      :vote-down (let [post (ioh/vote! :down @config-atom (:id data))]
+                   (broadcast! {:event-name :fact-change
+                                :data       {:paths [[:pages :post :post]
+                                                     [:pages :posts :posts (:id post)]]
+                                             :fact  post}}))
+      :vote-up (let [post (ioh/vote! :up @config-atom (:id data))]
+                 (broadcast! {:event-name :fact-change
+                              :data       {:paths [[:pages :post :post]
+                                                   [:pages :posts :posts (:id post)]]
+                                           :fact  post}}))
       :pong (log/info "Pong!")
 
       :front-page-facts (send! channel (str {:event-name :front-page-facts
-                                             :data       {:path [:pages :front-page]
-                                                          :fact {:intro "Hi! I'm Eric."
-                                                                 :about "I work as a software engineer at TietoEvry. I received my Masters in Computer Science from the Royal Institute of Technology in Sweden. Apart from coding and tinkering with electronics I'm interested in baking, brewing and cooking."}}}))
+                                             :data       {:paths [[:pages :front-page]]
+                                                          :fact  {:intro "Hi! I'm Eric."
+                                                                  :about "I work as a software engineer at TietoEvry. I received my Masters in Computer Science from the Royal Institute of Technology in Sweden. Apart from coding and tinkering with electronics I'm interested in baking, brewing and cooking."}}}))
       :resume-facts (send! channel (str {:event-name :resume-page-facts
-                                         :data       {:path [:pages :resume]
-                                                      :fact {}}}))
+                                         :data       {:paths [[:pages :resume]]
+                                                      :fact  {}}}))
 
       :posts-facts (send! channel (str {:event-name :posts-page-facts
-                                        :data       {:path [:pages :posts]
-                                                     :fact {:title "Posts"
-                                                            :intro "Some writing."
-                                                            :posts (ioh/read-posts-from-disk @state-atom @config-atom)}}}))
+                                        :data       {:paths [[:pages :posts]]
+                                                     :fact  {:title "Posts"
+                                                             :intro "Some writing."
+                                                             :posts (ioh/read-posts-from-disk @state-atom @config-atom)}}}))
 
       :post-facts (let [post-or-error (try (ioh/get-post-by :name @config-atom (:slug data))
                                            (catch AssertionError _ (str "No post named " (:slug data) "...")))]
                     (send! channel (str {:event-name :post-page-facts
-                                         :data       {:path [:pages :post]
-                                                      :fact {:title "Post"
-                                                             :intro "This is a post"
-                                                             :post  (when post-or-error post-or-error)
-                                                             :error (when (string? post-or-error) post-or-error)}}})))
+                                         :data       {:paths [[:pages :post]]
+                                                      :fact  {:title "Post"
+                                                              :intro "This is a post"
+                                                              :post  (when post-or-error post-or-error)
+                                                              :error (when (string? post-or-error) post-or-error)}}})))
 
       :portfolio-facts (send! channel (str {:event-name :portfolio-page-facts
-                                            :data       {:path [:pages :portfolio]
-                                                         :fact {}}}))
+                                            :data       {:paths [[:pages :portfolio]]
+                                                         :fact  {}}}))
 
       :login-facts (send! channel (str {:event-name :login-page-facts
-                                        :data       {:path [:pages :login]
-                                                     :fact {}}}))
+                                        :data       {:paths [[:pages :login]]
+                                                     :fact  {}}}))
+
+      :create-post-facts (send! channel (str {:event-name :create-post-facts
+                                              :data       {:paths [[:pages :create-post]]
+                                                           :fact  {:template (post-template {})}}}))
+
+      :dashboard-facts (send! channel (str {:event-name :dashboard-page-facts
+                                            :data       {:paths [[:pages :dashboard]]
+                                                         :fact  {}}}))
+
+
 
       ; else
       (log/info (str "No matching clause " event-name " type: " (type event-name)))

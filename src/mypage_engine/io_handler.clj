@@ -158,8 +158,14 @@
 
 (defmulti vote! (fn [type _ _] type))
 (defmethod vote! :up [_ {:keys [post-root] :as config} id]
-  (let [post (get-post-by :id config id)]
-    (spit (post-path post-root post) (pretty-str (update post :points inc)))))
+  (let [post (-> (get-post-by :id config id)
+                 (update :points inc))]
+    (spit (post-path post-root post) (pretty-str post))
+    post))
+
 (defmethod vote! :down [_ {:keys [post-root] :as config} id]
-  (let [post (get-post-by :id config id)]
-    (spit (post-path post-root post) (pretty-str (update post :points dec)))))
+  (let [post (-> (get-post-by :id config id)
+                 (update :points dec))]
+    (spit (post-path post-root post) (pretty-str post))
+    post))
+
