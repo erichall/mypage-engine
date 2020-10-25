@@ -26,17 +26,14 @@
                                 :rotor (rotor/rotor-appender {:path    (config :log-file-name)
                                                               :backlog 20})}}))
 (def initial-state
-  {:posts     nil
-   :portfolio {:my-awesome-tool {:text "cool stuff"}}
-   :misc      {:header {:title    "Eric Hallström"
-                        :subtitle "Software Engineer"}}
-   :pages     {:front-page nil
-               :resume     nil
-               :posts      nil
-               :portfolio  nil
-               :login      nil
-               }
-   })
+  {:misc  {:header {:title    "Eric Hallström"
+                    :subtitle "Software Engineer"}}
+   :pages {:front-page nil
+           :resume     nil
+           :posts      nil
+           :portfolio  nil
+           :login      nil
+           }})
 
 (when (nil? (deref state-atom))
   (add-watch state-atom
