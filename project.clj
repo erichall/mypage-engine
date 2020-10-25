@@ -31,6 +31,6 @@
             "eastwood" ["with-profile" "+lint" "eastwood" "{:namespaces [:source-paths]}"]
             "kibit"    ["with-profile" "+lint" "kibit"]
             "lint"     ["do"
-                        ["kibit"]
+                        ;["kibit"]
                         ["eastwood"]]
             })
