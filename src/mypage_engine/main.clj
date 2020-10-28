@@ -99,7 +99,8 @@
     (reset! state-atom initial-state)
     (initialize-secrets (deref config-atom))
 
-    (start-server! {:state-atom state-atom :config-atom config-atom}))
+    (start-server! {:state-atom state-atom :config-atom config-atom})
+    )
 
   (stop-server!)
 

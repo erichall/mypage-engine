@@ -128,12 +128,21 @@
                    (broadcast! {:event-name :fact-change
                                 :data       {:paths [[:pages :post :post]
                                                      [:pages :posts :posts (:id post)]]
-                                             :fact  post}}))
+                                             :fact  post}})
+                   (broadcast! {:event-name :notification
+                                :data       {:title   "Downvote..."
+                                             :message (:title post)
+                                             :id      (:id data)}})
+                   )
       :vote-up (let [post (ioh/vote! :up @config-atom (:id data))]
                  (broadcast! {:event-name :fact-change
                               :data       {:paths [[:pages :post :post]
                                                    [:pages :posts :posts (:id post)]]
-                                           :fact  post}}))
+                                           :fact  post}})
+                 (broadcast! {:event-name :notification
+                              :data       {:title   "Upvote!"
+                                           :message (:title post)
+                                           :id      (:id data)}}))
       :pong (log/info "Pong!")
 
       :front-page-facts (send! channel (str {:event-name :front-page-facts
