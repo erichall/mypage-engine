@@ -38,9 +38,7 @@
 (when (nil? (deref state-atom))
   (add-watch state-atom
              :game-loop
-             (fn [_ _ old-value new-value]
-               ;(ws/broadcast! {:data {:state new-value}})
-               ))
+             (fn [_ _ old-value new-value]))
   (reset! state-atom initial-state))
 
 (defn stop-repl!
