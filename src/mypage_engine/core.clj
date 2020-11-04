@@ -23,8 +23,6 @@
   (let [zone-id (ZoneId/of zone)]
     (.format (ZonedDateTime/ofInstant (Instant/now) zone-id) (DateTimeFormatter/ofPattern "yyyy-MM-dd-HH:mm"))))
 
-
-
 (defn space->dash
   {:test (fn []
            (is (= (space->dash "This is my post") "This-is-my-post"))
